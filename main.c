@@ -1,7 +1,8 @@
 #include "stm32f4xx.h"
 #include "stdio.h"
+#include "stdlib.h"
 #include "string.h"
-
+#include "stdbool.h"
 
 #define STR_MAX_LENGTH 100
 #define TC_BIT 0x0040
@@ -9,15 +10,30 @@
 #define RXNE_BIT 0x0020
 #define RXNE_SHIFT_LEFT 5
 
-
-
 void uart_my_init(void);
 void uart_my_send_str_polling(const char * str);
 void uart_my_receive_str_polling(char * str, uint8_t strLen);
 
+void Main_menu();
 void GPIO_my_Init(void);
 void Led_on(void);
 void Led_off(void);
+void Basic_plus();
+
+void send1char(int a)    // gui 1 so nguyen int
+	{
+		int dem = -1, i = 0;
+		char A[100];
+		while(a>0){
+			A[i++] = a%10;
+			a/=10;
+			dem++;
+		}
+		for(i = dem; i>=0; i--){
+			char b = A[i]+'0';
+			uart_my_send_str_polling(&b);
+		}
+	}
 
 void uart_my_init(){
 	GPIO_InitTypeDef gpio_init;
@@ -50,8 +66,7 @@ void uart_my_init(){
 	USART_Cmd(USART3, ENABLE);
 }
 
-void uart_my_send_str_polling(const char * str)
-{
+void uart_my_send_str_polling(const char * str){
 	if(str != NULL)
 	{
 		uint8_t strIndex = 0;
@@ -69,8 +84,7 @@ void uart_my_send_str_polling(const char * str)
 	}
 }
 
-void uart_my_receive_str_polling(char * str, uint8_t strLen)
-{
+void uart_my_receive_str_polling(char * str, uint8_t strLen){
 	if(str != NULL)
 	{
 		uint8_t strIndex = 0;
@@ -100,111 +114,197 @@ void Led_on(){
 void Led_off(){
 	GPIO_WriteBit(GPIOG, GPIO_Pin_13,0);
 }
-int main()
-{
-	char* string1 = " Choose your option(1,2,..) \r\n 1. Student info \r\n 2. Basic operation \r\n 3. Simple led \r\n 4. Advance led \r\n 5. Audio\r\n    *****Y_Nguyen***** \r\n";
-	char* string2 = " 1. Student info \r\n ID:xxx \r\n Full name: yyy \r\n ESC: return previous menu\r\n";
+
+void Student_info(){
+		char* string2 = " 1. Student info \r\n ID:xxx \r\n Full name: yyy \r\n 0. Return previous menu\r\n";
+		uart_my_send_str_polling(string2);
+}
+
+void Basic_operation(){
 	char* string3 = " 2. Basic operation \r\n a. Plus \r\n b. Subtract \r\n c. Multiple\r\n d.Divide \r\n e. Moudule \r\n";
-	char* string4 = " 3. Simple led \r\n a. Led on \r\n b. Led off \r\n";
-	char* string5 = " 4. Advance led \r\n a. Set led \r\n b. Set direction \r\n c. Start \r\n ESC: return previous menu\r\n";
-	char* string6 = " 5. Audio\r\n Playing... \r\n ESC: return previous menu\r\n";
 	char* stringagaint = " ------->Choose againt\r\n";
-	//char* inputCharMsg = "Input your character: ";
-	//char* dontSupportStr = "Don't support";
-	//char* visibleCharStr = "Visible char";
-	//char* invisibleCharStr = "Invisible char";
-	//char* newLineStr = "\r\n";
-	
 	char charInput;
 	char charInputStr[STR_MAX_LENGTH];
-	
-	GPIO_my_Init();
-	uart_my_init();
-	uart_my_send_str_polling(string1);
+	uart_my_send_str_polling(string3);
 	for(;;)
 	{
 			uart_my_receive_str_polling(charInputStr,1);
-			charInput = charInputStr[0];	
-			if(charInput == 49) 			//Student info
-			{
-					uart_my_send_str_polling(string2);
-					uart_my_receive_str_polling(charInputStr,1);
+			charInput = charInputStr[0];
+			switch(charInput){
+				case 97:
+				{
+					Basic_plus();
+					break;
+				}
+				case 98:
+				{
+					Basic_plus();
+					break;
+				}
+				case 99:
+				{
+					Basic_plus();
+					break;
+				}
+				case 100:
+				{
+					Basic_plus();
+					break;
+				}
+				case 101:
+				{
+					Basic_plus();
+					break;
+				}
+				case 48:
+					{
+						Main_menu();  //sai, tro ve basic operation moi dung
+						break;
+					}
+				default:
+					{
+						uart_my_send_str_polling(stringagaint);
+					}
 			}
-			else if (charInput == 50) //Basic operation
+	}
+}
+
+void Simple_led(){
+	char* string4 = " 3. Simple led \r\n a. Led on \r\n b. Led off \r\n 0. Return previous menu\r\n";
+	uart_my_send_str_polling(string4);
+}
+
+void Advance_led(){
+	char* string5 = " 4. Advance led \r\n a. Set led \r\n b. Set direction \r\n c. Start \r\n ESC: return previous menu\r\n";
+	uart_my_send_str_polling(string5);
+}
+
+void Audio(){
+	char* string6 = " 5. Audio\r\n Playing... \r\n ESC: return previous menu\r\n";
+	uart_my_send_str_polling(string6);
+}
+void Basic_plus(){
+	char * string7 = " a. Plus, 0. Return previous menu\r\n";
+	char * string8 = " Operand 1: ";
+	char * string9 = " Operand 2: ";
+	char * string10 = " Result: ";
+	char * newline = " \r\n"; 
+	char charInput;
+	char charInputStr[STR_MAX_LENGTH];
+	memset(charInputStr, 0, STR_MAX_LENGTH);
+	int a,b, sum =0;
+	uart_my_send_str_polling(string7);
+	uart_my_send_str_polling(string8);
+	uart_my_receive_str_polling(charInputStr,1);
+	if(charInput != 48)
+	{
+		uart_my_send_str_polling(charInputStr);   //output operand1 to terminal
+		charInput = charInputStr[0];
+		uart_my_send_str_polling(newline);
+		a = atoi(charInputStr);			//convert  charInputStr -> int
+
+		uart_my_send_str_polling(string9);
+		uart_my_receive_str_polling(charInputStr,1);
+		uart_my_send_str_polling(charInputStr);   //output operand2 to terminal
+		charInput = charInputStr[0];			
+		uart_my_send_str_polling(newline);
+
+		b = atoi(charInputStr);    //convert  charInputStr -> int
+		sum  = a+b;
+
+		uart_my_send_str_polling(string10);
+		send1char(sum);  // hien thi ket qua len Terminal
+		uart_my_send_str_polling(newline);		
+		uart_my_receive_str_polling(charInputStr,1);
+	}
+	else
+		Basic_operation();
+}
+
+void Main_menu(){
+	char* string1 = " Choose your option(1,2,..) \r\n 1. Student info \r\n 2. Basic operation \r\n 3. Simple led \r\n 4. Advance led \r\n 5. Audio\r\n    *****Y_Nguyen***** \r\n";
+	char* stringagaint = " ------->Choose againt\r\n";
+	char charInput;
+	char charInputStr[STR_MAX_LENGTH];
+	uart_my_send_str_polling(string1);
+	for(;;){
+		uart_my_receive_str_polling(charInputStr,1);
+		charInput = charInputStr[0];
+		switch(charInput){
+			case 49:
 			{
-					uart_my_send_str_polling(string3);
-					uart_my_receive_str_polling(charInputStr,1);
-			}
-			else if (charInput == 51) //Simple led
-			{
-					uart_my_send_str_polling(string4);
+				Student_info();
+				for(;;)
+				{
 					uart_my_receive_str_polling(charInputStr,1);
 					charInput = charInputStr[0];
-					/*if(charInput == 97)
-						{
-							Led_on();					
-							uart_my_receive_str_polling(charInputStr,1);
-							charInput = charInputStr[0];
-						}
-					else if(charInput == 98)
-						{
-							Led_off();
-							uart_my_receive_str_polling(charInputStr,1);
-						}
+					if(charInput == 48)
+						Main_menu();
 					else
-						{
-						uart_my_send_str_polling(stringagaint);
-						}*/
-						while(charInput != 27)
-						{
-										if(charInput == 97)
-									{
-										Led_on();					
-										uart_my_receive_str_polling(charInputStr,1);
-										charInput = charInputStr[0];
-									}
-								else if(charInput == 98)
-									{
-										Led_off();
-										uart_my_receive_str_polling(charInputStr,1);
-									}
-								else
-									{
-									uart_my_send_str_polling(stringagaint);
-									}
-						}
-					
-			}
-			else if(charInput == 52) //Advance led
-			{
-					uart_my_send_str_polling(string5);
-					uart_my_receive_str_polling(charInputStr,1);
-			}
-			else if(charInput == 53) //5. Audio
-			{
-					uart_my_send_str_polling(string6);
-					uart_my_receive_str_polling(charInputStr,1);
-			}
-			else
-				{
-					uart_my_send_str_polling(stringagaint);
+						uart_my_send_str_polling(stringagaint);			
 				}
-				
-		
-		
-		
-		
-		/*charInput = charInputStr[0];
-		if((charInput>=32) && (charInput<126))
-		{
-			uart_my_send_str_polling(charInputStr);
-			uart_my_send_str_polling(newLineStr);
-		}
-		else
-		{
-			uart_my_send_str_polling(dontSupportStr);
-			uart_my_send_str_polling(newLineStr);
-		}*/
+				break;
+			}
+			case 50:
+			{
+				Basic_operation();
+				break;
+			}
+			case 51:
+			{
+				Simple_led();
+				for(;;){
+					uart_my_receive_str_polling(charInputStr,1);
+					charInput = charInputStr[0];
+					switch(charInput){
+						case 97:
+							{
+								Led_on();
+								break;
+							}
+						case 98:
+							{
+								Led_off();
+								break;
+							}
+						case 48:
+							{
+								Main_menu();
+								break;
+							}
+							default:
+							{
+								uart_my_send_str_polling(stringagaint);
+							}
+					}
+				}
+				break;
+			}
+			case 52:
+			{
+				Advance_led();
+				uart_my_receive_str_polling(charInputStr,1);
+				break;
+			}
+			case 53:
+			{
+				Audio();
+				uart_my_receive_str_polling(charInputStr,1);
+				break;
+			}
+			case 48:   // nhan 0 tro ve main menu
+			{
+				Main_menu();
+				break;
+			}
+			default:
+				uart_my_send_str_polling(stringagaint);
 	}
-	return 0;
+}
+}
+
+int main(){
+	GPIO_my_Init();
+	uart_my_init();
+	Main_menu();
 }
